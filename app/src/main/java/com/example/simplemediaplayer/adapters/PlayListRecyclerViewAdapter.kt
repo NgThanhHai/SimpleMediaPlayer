@@ -12,43 +12,81 @@ import com.squareup.picasso.Picasso
 
 class PlayListRecyclerViewAdapter(var playlist: List<TrackData>): RecyclerView.Adapter<PlayListRecyclerViewAdapter.ViewHolder>() {
 
-    var onItemClick: ((Int) -> Unit)? = null
+    var onItemClick: ((TrackData) -> Unit)? = null
+    var chosenTrack = -1
 
-    inner class ViewHolder(itemView: LayoutListCellBinding): RecyclerView.ViewHolder(itemView.root) {
-        var layoutListCellBinding: LayoutListCellBinding = itemView
+    inner class ViewHolder(private var binding: LayoutListCellBinding): RecyclerView.ViewHolder(binding.root) {
 
-        private val ivPoster = itemView.ivMiniSongPoster
+        fun bind(item: TrackData) {
+            binding.track = item
+            Picasso.get().load(item.thumbnail).into(binding.ivMiniSongPoster)
+            if(item.isSelected) {
+                binding.itemHOFContainer.setBackgroundResource(R.drawable.list_song_item_background_on)
+            }else {
+                binding.itemHOFContainer.setBackgroundResource(R.drawable.list_song_item_background_off)
+            }
+            binding.root.setOnClickListener {
 
-        fun setUpPoster(trackData: TrackData) {
-            if (trackData.thumbnail.isNullOrBlank()) {
-                //Picasso.get().load(R.drawable.ic_default_male_avatar).into(ivAvatar)
-                return
-            }else{
-                Picasso.get().load(trackData.thumbnail).into(ivPoster)
+                unselectedAll()
+                notifyItemChanged(chosenTrack)
+                chosenTrack = adapterPosition
+                playlist[chosenTrack].isSelected = true
+                notifyItemChanged(chosenTrack)
+                onItemClick?.invoke(playlist[chosenTrack])
             }
         }
 
-        init {
-            itemView.root.setOnClickListener {
-                onItemClick?.invoke(adapterPosition)
+    }
+
+    fun playNext() {
+        unselectedAll()
+        notifyItemChanged(chosenTrack)
+        chosenTrack = truncate(chosenTrack + 1)
+        playlist[chosenTrack].isSelected = true
+        notifyItemChanged(chosenTrack)
+        onItemClick?.invoke(playlist[chosenTrack])
+    }
+
+    fun playPrevious() {
+        unselectedAll()
+        notifyItemChanged(chosenTrack)
+        chosenTrack = truncate(chosenTrack -1)
+        playlist[chosenTrack].isSelected = true
+        notifyItemChanged(chosenTrack)
+        onItemClick?.invoke(playlist[chosenTrack])
+    }
+
+    private fun truncate(value: Int): Int {
+        return when {
+            value >= playlist.size -> {
+                0
+            }
+            value < 0 -> {
+                playlist.size - 1
+            }
+            else -> {
+                value
             }
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val layoutListCellBinding: LayoutListCellBinding = DataBindingUtil.inflate(LayoutInflater.from(parent.context), R.layout.layout_list_cell, parent, false)
-
         return ViewHolder(layoutListCellBinding)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val track = playlist[position]
-        holder.layoutListCellBinding.track = track
-        holder.setUpPoster(track)
+        (holder).bind(playlist[position])
     }
 
     override fun getItemCount(): Int {
         return playlist.size
+    }
+
+    fun unselectedAll() {
+        for (element in playlist) {
+            element.isSelected = false
+        }
     }
 
 }

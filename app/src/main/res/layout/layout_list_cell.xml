@@ -15,6 +15,7 @@
         android:layout_marginBottom="10dp"
         android:padding="10dp"
         app:cardCornerRadius="12dp"
+        android:background="@color/white"
         android:layout_gravity="center_horizontal">
 
         <LinearLayout
@@ -23,6 +24,7 @@
             android:layout_height="match_parent"
             android:layout_gravity="center_horizontal"
             android:baselineAligned="false"
+            android:layout_margin="2dp"
             android:background="@drawable/song_item_background_state"
             android:orientation="horizontal">
 

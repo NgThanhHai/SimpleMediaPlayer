@@ -24,14 +24,7 @@ class MainActivityViewModel: ViewModel() {
     init {
         fetchSongList()
     }
-
-    fun getChosenTrackPosition(): LiveData<Int> = chosenTrack
-
-    fun getSongList(): LiveData<List<Song>>
-    {
-        return songList
-    }
-
+    fun loadingLiveData(): LiveData<Boolean> = isLoading
     fun getSongListSource(): LiveData<List<TrackData>>{
         return tracks
     }
@@ -67,7 +60,7 @@ class MainActivityViewModel: ViewModel() {
         } catch (e: Exception) {
         } finally {
             tracks.postValue(downloadingTracks)
+            isLoading.postValue(false)
         }
-        isLoading.postValue(false)
     }
 }

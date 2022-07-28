@@ -35,7 +35,8 @@ data class TrackData (
     @SerializedName("artist") val artist : TrackArtist,
     @SerializedName("ads") val ads : Boolean,
     @SerializedName("is_vip") val is_vip : Boolean,
-    @SerializedName("ip") val ip : String
+    @SerializedName("ip") val ip : String,
+    var isSelected: Boolean = false
 
 
 )
