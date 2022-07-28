@@ -1,10 +1,12 @@
 package com.example.simplemediaplayer.ui.activities
 
+import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
+import android.os.PowerManager
 import android.util.Log
 import android.widget.SeekBar
 import android.widget.Toast
@@ -204,6 +206,16 @@ class MainActivity : AppCompatActivity() {
         mediaPlayer.apply {
             stop()
             release()
+        }
+    }
+
+
+    override fun onStop() {
+        super.onStop()
+        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+        val isScreenOn = pm.isScreenOn
+        if(!isScreenOn && mediaPlayer.isPlaying) {
+            binding.btnPlayPause.performClick()
         }
     }
 

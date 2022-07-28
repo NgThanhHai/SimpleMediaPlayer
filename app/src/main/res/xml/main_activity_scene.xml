@@ -61,58 +61,79 @@
             android:id="@+id/btnLove"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:alpha="0"/>
+            android:alpha="0"
+            app:layout_constraintTop_toTopOf="parent"/>
         <Constraint
             android:id="@+id/btnShare"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:alpha="0"/>
-        <Constraint
-            android:id="@+id/lll"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toTopOf="@+id/tvSongTitle"/>
+            android:alpha="0"
+            app:layout_constraintTop_toTopOf="parent"/>
         <Constraint
             android:id="@+id/sbMusic"
-            android:layout_width="380dp"
-            android:layout_height="30dp"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
             android:layout_gravity="center"
-            android:alpha="@android:integer/config_longAnimTime" />
+            android:alpha="@android:integer/config_longAnimTime"
+            app:layout_constraintTop_toBottomOf="@id/tvSongTitle"/>
         <Constraint
             android:id="@+id/viewTop"
-            android:layout_width="wrap_content"
-            android:layout_height="2dp"
+            android:layout_width="0dp"
+            android:layout_height="4dp"
             android:background="@color/white"
             android:alpha="1"
-            app:layout_constraintLeft_toLeftOf="@+id/tvCurrentDuration"
-           app:layout_constraintRight_toRightOf="@+id/tvMaxDuration"
+            app:layout_constraintLeft_toLeftOf="@+id/layoutPanel"
+           app:layout_constraintRight_toRightOf="@+id/layoutPanel"
             app:layout_constraintTop_toTopOf="@+id/tvSongTitle" />
         <Constraint
             android:id="@+id/viewBottom"
-            android:layout_width="wrap_content"
-            android:layout_height="2dp"
+            android:layout_width="0dp"
+            android:layout_height="4dp"
             android:background="@color/white"
             android:alpha="1"
-            app:layout_constraintBottom_toBottomOf="@+id/lll"
-            app:layout_constraintLeft_toLeftOf="@+id/lll"
-            app:layout_constraintRight_toRightOf="@+id/lll" />
+            app:layout_constraintBottom_toBottomOf="@+id/layoutPanel"
+            app:layout_constraintLeft_toLeftOf="@+id/layoutPanel"
+            app:layout_constraintRight_toRightOf="@+id/layoutPanel" />
         <Constraint
             android:id="@+id/viewLeft"
-            android:layout_width="2dp"
+            android:layout_width="4dp"
             android:layout_height="0dp"
             android:background="@color/white"
             android:alpha="1"
-            app:layout_constraintLeft_toLeftOf="@+id/lll"
+            app:layout_constraintLeft_toLeftOf="@+id/layoutPanel"
             app:layout_constraintTop_toBottomOf="@+id/viewTop"
             app:layout_constraintBottom_toTopOf="@+id/viewBottom"/>
         <Constraint
             android:id="@+id/viewRight"
-            android:layout_width="2dp"
+            android:layout_width="4dp"
             android:layout_height="0dp"
             android:background="@color/white"
             android:alpha="1"
             app:layout_constraintBottom_toTopOf="@+id/viewBottom"
-            app:layout_constraintRight_toRightOf="@+id/lll"
+            app:layout_constraintRight_toRightOf="@+id/layoutPanel"
             app:layout_constraintTop_toBottomOf="@+id/viewTop" />
+        <Constraint
+            android:id="@+id/tvCurrentDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:text="00:00"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintBottom_toBottomOf="@+id/tvSongTitle"/>
+
+        <Constraint
+            android:id="@+id/tvMaxDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="20dp"
+            android:text="00:00"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toBottomOf="@+id/tvSongTitle" />
     </ConstraintSet>
 </MotionScene>
