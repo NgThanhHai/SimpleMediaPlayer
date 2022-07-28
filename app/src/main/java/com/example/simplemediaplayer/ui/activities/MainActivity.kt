@@ -27,7 +27,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var viewModel: MainActivityViewModel
-    private lateinit var rvPlaylistAdapter: PlayListRecyclerViewAdapter
+    private var rvPlaylistAdapter = PlayListRecyclerViewAdapter()
     private lateinit var runnable: Runnable
     private lateinit var loadingDialog: LoadingDialog
     private var currentTrack: TrackData? = null
@@ -40,8 +40,21 @@ class MainActivity : AppCompatActivity() {
         loadingDialog = LoadingDialog()
 
         configMediaPlayer()
+        initListSong()
         initEvent()
         initBehaviour()
+    }
+
+    private fun initListSong() {
+        binding.rvPlaylist.apply {
+            setItemViewCacheSize(200)
+            hasFixedSize()
+            layoutManager = LinearLayoutManager(
+                context,
+                LinearLayoutManager.VERTICAL,
+                false
+            )
+        }
     }
 
     private fun initBehaviour() {
@@ -62,6 +75,7 @@ class MainActivity : AppCompatActivity() {
             }
 
         })
+
         binding.btnPlayPause.setOnClickListener {
             if (mediaPlayer.isPlaying) {
                 mediaPlayer.pause()
@@ -70,6 +84,11 @@ class MainActivity : AppCompatActivity() {
                 mediaPlayer.start()
                 binding.btnPlayPause.setBackgroundResource(R.drawable.ic_baseline_pause_circle_outline_24)
             }
+        }
+
+        rvPlaylistAdapter.onItemClick = {
+            currentTrack = it
+            playSong(it)
         }
 
         binding.btnPrevious.setOnClickListener {
@@ -123,21 +142,8 @@ class MainActivity : AppCompatActivity() {
     private fun initEvent() {
         viewModel.getSongListSource().observe(this) {
             it?.let {
-                rvPlaylistAdapter = PlayListRecyclerViewAdapter(it)
-                binding.rvPlaylist.apply {
-                    setItemViewCacheSize(200)
-                    hasFixedSize()
-                    layoutManager = LinearLayoutManager(
-                        context,
-                        LinearLayoutManager.VERTICAL,
-                        false
-                    )
-                    adapter = rvPlaylistAdapter
-                }
-                rvPlaylistAdapter.onItemClick = {
-                    currentTrack = it
-                    playSong(it)
-                }
+                rvPlaylistAdapter.addAll(it)
+                binding.rvPlaylist.adapter = rvPlaylistAdapter
             }
         }
 
@@ -172,34 +178,35 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun playSong(data: TrackData) {
-        if (mediaPlayer.isPlaying) {
-            clearMediaPlayer()
-        }
-        try {
-            mediaPlayer = MediaPlayer()
-            mediaPlayer.apply {
-                setDataSource(data.source._128)
-                prepareAsync()
-                setOnPreparedListener {
-                    start()
-                    binding.apply {
-                        btnPlayPause.setBackgroundResource(R.drawable.ic_baseline_pause_circle_outline_24)
-                        data.apply {
-                            tvSongTitle.text = name
-                            tvSingerName.text = artists_names
-                            tvMaxDuration.text = displayDuration
-                        }
-                        sbMusic.apply {
-                            progress = 0
-                            max = data.duration * 1000
+        if(data.id.isNotEmpty()) {
+            if (mediaPlayer.isPlaying) {
+                clearMediaPlayer()
+            }
+            try {
+                mediaPlayer = MediaPlayer()
+                mediaPlayer.apply {
+                    setDataSource(data.source._128)
+                    prepareAsync()
+                    setOnPreparedListener {
+                        start()
+                        binding.apply {
+                            btnPlayPause.setBackgroundResource(R.drawable.ic_baseline_pause_circle_outline_24)
+                            data.apply {
+                                tvSongTitle.text = name
+                                tvSingerName.text = artists_names
+                                tvMaxDuration.text = displayDuration
+                            }
+                            sbMusic.apply {
+                                progress = 0
+                                max = data.duration * 1000
+                            }
                         }
                     }
                 }
+            } catch (ex: Exception) {
+                Log.d("Exception: ", ex.toString())
             }
-        } catch (ex: Exception) {
-            Log.d("Exception: ", ex.toString())
         }
-
     }
 
     private fun clearMediaPlayer() {

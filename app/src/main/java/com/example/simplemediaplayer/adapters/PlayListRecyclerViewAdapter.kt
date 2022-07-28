@@ -10,10 +10,16 @@ import com.example.simplemediaplayer.databinding.LayoutListCellBinding
 import com.example.simplemediaplayer.models.TrackData
 import com.squareup.picasso.Picasso
 
-class PlayListRecyclerViewAdapter(var playlist: List<TrackData>): RecyclerView.Adapter<PlayListRecyclerViewAdapter.ViewHolder>() {
+class PlayListRecyclerViewAdapter(var playlist: MutableList<TrackData> = mutableListOf()): RecyclerView.Adapter<PlayListRecyclerViewAdapter.ViewHolder>() {
 
     var onItemClick: ((TrackData) -> Unit)? = null
     var chosenTrack = -1
+
+    fun addAll(lst: List<TrackData>){
+        playlist.clear()
+        playlist.addAll(lst)
+        notifyDataSetChanged()
+    }
 
     inner class ViewHolder(private var binding: LayoutListCellBinding): RecyclerView.ViewHolder(binding.root) {
 
@@ -21,9 +27,9 @@ class PlayListRecyclerViewAdapter(var playlist: List<TrackData>): RecyclerView.A
             binding.track = item
             Picasso.get().load(item.thumbnail).into(binding.ivMiniSongPoster)
             if(item.isSelected) {
-                binding.itemHOFContainer.setBackgroundResource(R.drawable.list_song_item_background_on)
-            }else {
                 binding.itemHOFContainer.setBackgroundResource(R.drawable.list_song_item_background_off)
+            }else {
+                binding.itemHOFContainer.setBackgroundResource(R.drawable.list_song_item_background_on)
             }
             binding.root.setOnClickListener {
 

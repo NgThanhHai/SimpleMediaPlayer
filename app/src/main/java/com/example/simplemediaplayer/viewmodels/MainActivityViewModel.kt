@@ -11,6 +11,7 @@ import com.example.simplemediaplayer.repositories.PlaylistRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivityViewModel: ViewModel() {
 
@@ -22,7 +23,7 @@ class MainActivityViewModel: ViewModel() {
 
 
     init {
-        fetchSongList()
+        fetchSongList2()
     }
     fun loadingLiveData(): LiveData<Boolean> = isLoading
     fun getSongListSource(): LiveData<List<TrackData>>{
@@ -57,6 +58,21 @@ class MainActivityViewModel: ViewModel() {
                 }
             }
 
+        } catch (e: Exception) {
+        } finally {
+            tracks.postValue(downloadingTracks)
+            isLoading.postValue(false)
+        }
+    }
+    private fun fetchSongList2() = viewModelScope.launch{
+        val downloadingTracks : ArrayList<TrackData> = ArrayList()
+        try {
+            withContext(Dispatchers.IO) {
+                songList.postValue(playlistRepository.getPlaylist())
+            }
+            songList.value?.forEach{ song ->
+                downloadingTracks.add(playlistRepository.getTrack(song.code).data)
+            }
         } catch (e: Exception) {
         } finally {
             tracks.postValue(downloadingTracks)

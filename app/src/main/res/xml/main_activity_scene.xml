@@ -34,7 +34,7 @@
             android:id="@+id/tvSongTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="50dp"
+            android:layout_marginTop="40dp"
             app:layout_constraintEnd_toEndOf="@+id/guideLine"
             app:layout_constraintStart_toStartOf="@+id/guideLine"
             app:layout_constraintTop_toTopOf="parent" />
@@ -46,6 +46,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
+            android:paddingTop="0dp"
             app:layout_constraintEnd_toEndOf="@+id/guideLine"
             app:layout_constraintStart_toStartOf="@+id/guideLine"
             app:layout_constraintTop_toTopOf="parent" />
@@ -81,7 +82,7 @@
             android:layout_width="0dp"
             android:layout_height="4dp"
             android:background="@color/white"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="10dp"
             android:alpha="1"
             app:layout_constraintLeft_toLeftOf="@+id/layoutPanel"
            app:layout_constraintRight_toRightOf="@+id/layoutPanel"

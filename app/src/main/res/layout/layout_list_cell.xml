@@ -9,13 +9,12 @@
     </data>
 
     <com.google.android.material.card.MaterialCardView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_marginHorizontal="10dp"
         android:layout_height="100dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp"
         android:padding="10dp"
         app:cardCornerRadius="12dp"
-        android:background="@color/white"
         android:layout_gravity="center_horizontal">
 
         <LinearLayout
@@ -25,7 +24,6 @@
             android:layout_gravity="center_horizontal"
             android:baselineAligned="false"
             android:layout_margin="2dp"
-            android:background="@drawable/song_item_background_state"
             android:orientation="horizontal">
 
             <de.hdodenhof.circleimageview.CircleImageView
