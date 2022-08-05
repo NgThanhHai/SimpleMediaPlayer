@@ -1,7 +1,14 @@
 package com.example.simplemediaplayer.ui.activities
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.graphics.BitmapFactory
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.os.Bundle
@@ -11,6 +18,9 @@ import android.util.Log
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,12 +28,15 @@ import com.example.simplemediaplayer.R
 import com.example.simplemediaplayer.adapters.PlayListRecyclerViewAdapter
 import com.example.simplemediaplayer.databinding.ActivityMainBinding
 import com.example.simplemediaplayer.ext.formatDuration
+import com.example.simplemediaplayer.interfaces.Playable
 import com.example.simplemediaplayer.models.TrackData
+import com.example.simplemediaplayer.services.OnClearFromSessionService
 import com.example.simplemediaplayer.ui.dialogs.LoadingDialog
+import com.example.simplemediaplayer.utils.CreateNotification
 import com.example.simplemediaplayer.viewmodels.MainActivityViewModel
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), Playable {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var viewModel: MainActivityViewModel
@@ -31,8 +44,30 @@ class MainActivity : AppCompatActivity() {
     private lateinit var runnable: Runnable
     private lateinit var loadingDialog: LoadingDialog
     private var currentTrack: TrackData? = null
+    private var pos : Int = -1
+    private var size: Int = -1
     var mediaPlayer: MediaPlayer = MediaPlayer()
-
+    lateinit var notificationManager: NotificationManager
+    private var broadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(p0: Context?, p1: Intent?) {
+            var action: String = p1!!.extras!!.getString("actionName").toString()
+            when(action) {
+                CreateNotification.ACTION_PREVIOUS -> {
+                    onTrackPrevious()
+                }
+                CreateNotification.ACTION_NEXT -> {
+                    onTrackNext()
+                }
+                CreateNotification.ACTION_PLAY -> {
+                    if (mediaPlayer.isPlaying) {
+                        onTrackPause()
+                    } else {
+                        onTrackPlay()
+                    }
+                }
+            }
+        }
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
@@ -40,9 +75,19 @@ class MainActivity : AppCompatActivity() {
         loadingDialog = LoadingDialog()
 
         configMediaPlayer()
+        createChannel()
         initListSong()
         initEvent()
         initBehaviour()
+    }
+
+    private fun createChannel() {
+        val channel = NotificationChannel(CreateNotification.CHANNEL_ID, "Music Player", NotificationManager.IMPORTANCE_LOW)
+        notificationManager = getSystemService(NotificationManager::class.java)
+        notificationManager.createNotificationChannel(channel)
+
+        registerReceiver(broadcastReceiver, IntentFilter("Tracks"))
+        startService(Intent(applicationContext, OnClearFromSessionService::class.java))
     }
 
     private fun initListSong() {
@@ -78,52 +123,31 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnPlayPause.setOnClickListener {
             if (mediaPlayer.isPlaying) {
-                mediaPlayer.pause()
-                binding.btnPlayPause.setBackgroundResource(R.drawable.ic_baseline_play_circle_outline_24)
+                onTrackPause()
             } else {
-                mediaPlayer.start()
-                binding.btnPlayPause.setBackgroundResource(R.drawable.ic_baseline_pause_circle_outline_24)
+                onTrackPlay()
             }
         }
 
-        rvPlaylistAdapter.onItemClick = {
-            currentTrack = it
-            playSong(it)
+        rvPlaylistAdapter.onItemClick = { data, p, s ->
+            currentTrack = data
+            pos = p
+            size = s
+            playSong(data, pos, size)
         }
 
         binding.btnPrevious.setOnClickListener {
-            rvPlaylistAdapter.playPrevious()
+            onTrackPrevious()
         }
         binding.btnNext.setOnClickListener {
-            rvPlaylistAdapter.playNext()
+            onTrackNext()
         }
 
         binding.btnShare.setOnClickListener {
-            shareTrack()
+            onTrackShare()
         }
 
         initPendingSeekbarBehaviour()
-    }
-
-    private fun shareTrack() {
-        if (currentTrack?.link?.isNotEmpty() == true) {
-            val sendIntent = Intent()
-            sendIntent.action = Intent.ACTION_SEND
-            sendIntent.putExtra(
-                Intent.EXTRA_TEXT,
-                "https://zingmp3.vn" + currentTrack?.link.toString()
-            )
-            sendIntent.type = "text/plain"
-            sendIntent.setPackage("com.facebook.orca")
-            try {
-                startActivity(sendIntent)
-            } catch (ex: java.lang.Exception) {
-                ex.printStackTrace()
-            }
-        } else {
-            Toast.makeText(this, "Select a song first", Toast.LENGTH_SHORT).show()
-        }
-
     }
 
 
@@ -176,8 +200,8 @@ class MainActivity : AppCompatActivity() {
         handler.postDelayed(runnable, 1000)
     }
 
-
-    private fun playSong(data: TrackData) {
+    private fun playSong(data: TrackData, pos: Int, size: Int) {
+        CreateNotification.createNotification(this, data, R.drawable.ic_baseline_pause_circle_outline_24, position = pos, size)
         if(data.id.isNotEmpty()) {
             if (mediaPlayer.isPlaying) {
                 clearMediaPlayer()
@@ -229,5 +253,48 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         clearMediaPlayer()
+        notificationManager.cancelAll()
+        unregisterReceiver(broadcastReceiver)
     }
+
+    override fun onTrackPrevious() {
+        rvPlaylistAdapter.playPrevious()
+    }
+
+    override fun onTrackPause() {
+        mediaPlayer.pause()
+        binding.btnPlayPause.setBackgroundResource(R.drawable.ic_baseline_play_circle_outline_24)
+        CreateNotification.createNotification(this, currentTrack!!, R.drawable.ic_baseline_play_circle_outline_24, position = pos, size)
+    }
+
+    override fun onTrackPlay() {
+        mediaPlayer.start()
+        binding.btnPlayPause.setBackgroundResource(R.drawable.ic_baseline_pause_circle_outline_24)
+        CreateNotification.createNotification(this, currentTrack!!, R.drawable.ic_baseline_pause_circle_outline_24, position = pos, size)
+    }
+
+    override fun onTrackNext() {
+        rvPlaylistAdapter.playNext()
+    }
+
+    override fun onTrackShare() {
+        if (currentTrack?.link?.isNotEmpty() == true) {
+            val sendIntent = Intent()
+            sendIntent.action = Intent.ACTION_SEND
+            sendIntent.putExtra(
+                Intent.EXTRA_TEXT,
+                "https://zingmp3.vn" + currentTrack?.link.toString()
+            )
+            sendIntent.type = "text/plain"
+            sendIntent.setPackage("com.facebook.orca")
+            try {
+                startActivity(sendIntent)
+            } catch (ex: java.lang.Exception) {
+                ex.printStackTrace()
+            }
+        } else {
+            Toast.makeText(this, "Select a song first", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 }

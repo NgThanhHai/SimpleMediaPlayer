@@ -12,7 +12,7 @@ import com.squareup.picasso.Picasso
 
 class PlayListRecyclerViewAdapter(var playlist: MutableList<TrackData> = mutableListOf()): RecyclerView.Adapter<PlayListRecyclerViewAdapter.ViewHolder>() {
 
-    var onItemClick: ((TrackData) -> Unit)? = null
+    var onItemClick: ((TrackData, Int, Int) -> Unit)? = null
     var chosenTrack = -1
 
     fun addAll(lst: List<TrackData>){
@@ -25,7 +25,11 @@ class PlayListRecyclerViewAdapter(var playlist: MutableList<TrackData> = mutable
 
         fun bind(item: TrackData) {
             binding.track = item
-            Picasso.get().load(item.thumbnail).into(binding.ivMiniSongPoster)
+            Picasso.get()
+                .load(item.thumbnail)
+                .fit()
+                .centerCrop()
+                .into(binding.ivMiniSongPoster)
             if(item.isSelected) {
                 binding.itemHOFContainer.setBackgroundResource(R.drawable.list_song_item_background_off)
             }else {
@@ -38,7 +42,7 @@ class PlayListRecyclerViewAdapter(var playlist: MutableList<TrackData> = mutable
                 chosenTrack = adapterPosition
                 playlist[chosenTrack].isSelected = true
                 notifyItemChanged(chosenTrack)
-                onItemClick?.invoke(playlist[chosenTrack])
+                onItemClick?.invoke(playlist[chosenTrack], chosenTrack, playlist.size - 1)
             }
         }
 
@@ -50,7 +54,7 @@ class PlayListRecyclerViewAdapter(var playlist: MutableList<TrackData> = mutable
         chosenTrack = truncate(chosenTrack + 1)
         playlist[chosenTrack].isSelected = true
         notifyItemChanged(chosenTrack)
-        onItemClick?.invoke(playlist[chosenTrack])
+        onItemClick?.invoke(playlist[chosenTrack], chosenTrack, playlist.size - 1)
     }
 
     fun playPrevious() {
@@ -59,7 +63,7 @@ class PlayListRecyclerViewAdapter(var playlist: MutableList<TrackData> = mutable
         chosenTrack = truncate(chosenTrack -1)
         playlist[chosenTrack].isSelected = true
         notifyItemChanged(chosenTrack)
-        onItemClick?.invoke(playlist[chosenTrack])
+        onItemClick?.invoke(playlist[chosenTrack], chosenTrack, playlist.size - 1)
     }
 
     private fun truncate(value: Int): Int {
