@@ -76,7 +76,9 @@ class MainActivityViewModel: ViewModel() {
         } catch (e: Exception) {
         } finally {
             tracks.postValue(downloadingTracks)
-            isLoading.postValue(false)
+            withContext(Dispatchers.Main) {
+                isLoading.postValue(false)
+            }
         }
     }
 }

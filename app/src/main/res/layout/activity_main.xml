@@ -155,7 +155,7 @@
         <View
             android:id="@+id/viewTop"
             android:layout_width="0dp"
-            android:layout_height="2dp"
+            android:layout_height="1dp"
             android:background="@color/white"
             android:alpha="0"
             app:layout_constraintLeft_toLeftOf="@+id/layoutPanel"
@@ -165,7 +165,7 @@
         <View
             android:id="@+id/viewBottom"
             android:layout_width="0dp"
-            android:layout_height="2dp"
+            android:layout_height="1dp"
             android:background="@color/white"
             android:alpha="0"
             app:layout_constraintBottom_toBottomOf="@+id/layoutPanel"
@@ -174,7 +174,7 @@
 
         <View
             android:id="@+id/viewLeft"
-            android:layout_width="2dp"
+            android:layout_width="1dp"
             android:layout_height="0dp"
             android:alpha="0"
             android:background="@color/white"
@@ -184,7 +184,7 @@
 
         <View
             android:id="@+id/viewRight"
-            android:layout_width="2dp"
+            android:layout_width="1dp"
             android:layout_height="0dp"
             android:background="@color/white"
             android:alpha="0"

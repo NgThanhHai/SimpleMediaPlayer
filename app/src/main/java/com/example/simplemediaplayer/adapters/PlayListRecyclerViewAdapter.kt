@@ -31,9 +31,9 @@ class PlayListRecyclerViewAdapter(var playlist: MutableList<TrackData> = mutable
                 .centerCrop()
                 .into(binding.ivMiniSongPoster)
             if(item.isSelected) {
-                binding.itemHOFContainer.setBackgroundResource(R.drawable.list_song_item_background_off)
+                binding.itemContainer.setBackgroundResource(R.drawable.list_song_item_background_off)
             }else {
-                binding.itemHOFContainer.setBackgroundResource(R.drawable.list_song_item_background_on)
+                binding.itemContainer.setBackgroundResource(R.drawable.list_song_item_background_on)
             }
             binding.root.setOnClickListener {
 
