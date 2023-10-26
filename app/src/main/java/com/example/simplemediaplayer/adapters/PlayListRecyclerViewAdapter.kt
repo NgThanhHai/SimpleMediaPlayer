@@ -12,7 +12,7 @@ import com.squareup.picasso.Picasso
 
 class PlayListRecyclerViewAdapter(var playlist: MutableList<TrackData> = mutableListOf()): RecyclerView.Adapter<PlayListRecyclerViewAdapter.ViewHolder>() {
 
-    var onItemClick: ((TrackData, Int, Int) -> Unit)? = null
+    var onItemClick: ((TrackData) -> Unit)? = null
     var chosenTrack = -1
 
     fun addAll(lst: List<TrackData>){
@@ -42,7 +42,7 @@ class PlayListRecyclerViewAdapter(var playlist: MutableList<TrackData> = mutable
                 chosenTrack = adapterPosition
                 playlist[chosenTrack].isSelected = true
                 notifyItemChanged(chosenTrack)
-                onItemClick?.invoke(playlist[chosenTrack], chosenTrack, playlist.size - 1)
+                onItemClick?.invoke(playlist[chosenTrack])
             }
         }
 
@@ -54,7 +54,7 @@ class PlayListRecyclerViewAdapter(var playlist: MutableList<TrackData> = mutable
         chosenTrack = truncate(chosenTrack + 1)
         playlist[chosenTrack].isSelected = true
         notifyItemChanged(chosenTrack)
-        onItemClick?.invoke(playlist[chosenTrack], chosenTrack, playlist.size - 1)
+        onItemClick?.invoke(playlist[chosenTrack])
     }
 
     fun playPrevious() {
@@ -63,7 +63,7 @@ class PlayListRecyclerViewAdapter(var playlist: MutableList<TrackData> = mutable
         chosenTrack = truncate(chosenTrack -1)
         playlist[chosenTrack].isSelected = true
         notifyItemChanged(chosenTrack)
-        onItemClick?.invoke(playlist[chosenTrack], chosenTrack, playlist.size - 1)
+        onItemClick?.invoke(playlist[chosenTrack])
     }
 
     private fun truncate(value: Int): Int {

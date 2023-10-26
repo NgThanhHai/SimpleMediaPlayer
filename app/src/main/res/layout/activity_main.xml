@@ -19,17 +19,6 @@
             android:orientation="vertical"
             app:layout_constraintGuide_percent="0.5" />
 
-        <ImageButton
-            android:id="@+id/btnLove"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@android:color/transparent"
-            android:src="@drawable/ic_star_empty"
-            android:paddingTop="10dp"
-            app:layout_constraintBottom_toBottomOf="@+id/tvSongTitle"
-            app:layout_constraintRight_toLeftOf="@+id/tvSingerName"
-            app:layout_constraintTop_toTopOf="@+id/tvSongTitle" />
-
         <TextView
             android:id="@+id/tvSongTitle"
             android:layout_width="wrap_content"
@@ -40,7 +29,7 @@
             android:ellipsize="end"
             android:gravity="center"
             android:maxLines="1"
-            android:text="Song Title"
+            android:text="@string/song_title"
             android:textColor="@color/white"
             android:textSize="25sp"
             android:textStyle="bold"
@@ -55,7 +44,7 @@
             android:backgroundTint="@android:color/transparent"
             android:ellipsize="end"
             android:gravity="center"
-            android:text="Singer Name"
+            android:text="@string/singer_name"
             android:textColor="@color/white_smoke"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -63,7 +52,7 @@
             app:layout_constraintRight_toRightOf="@id/tvSongTitle"
             app:layout_constraintTop_toBottomOf="@id/tvSongTitle" />
 
-        <ImageButton
+        <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/btnShare"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -79,7 +68,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="20dp"
-            android:text="00:00"
+            android:text="@string/_00_00"
             android:textColor="@color/white"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -91,7 +80,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="20dp"
-            android:text="00:00"
+            android:text="@string/_00_00"
             android:textColor="@color/white"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -114,13 +103,13 @@
             android:orientation="horizontal"
             app:layout_constraintTop_toBottomOf="@+id/sbMusic">
 
-            <ImageButton
+            <androidx.appcompat.widget.AppCompatImageButton
                 android:id="@+id/btnPrevious"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="@drawable/ic_previous_24" />
 
-            <ImageButton
+            <androidx.appcompat.widget.AppCompatImageButton
                 android:id="@+id/btnPlayPause"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
@@ -128,7 +117,7 @@
                 android:layout_marginRight="50dp"
                 android:background="@drawable/ic_baseline_play_circle_outline_24" />
 
-            <ImageButton
+            <androidx.appcompat.widget.AppCompatImageButton
                 android:id="@+id/btnNext"
                 android:layout_width="40dp"
                 android:layout_height="40dp"

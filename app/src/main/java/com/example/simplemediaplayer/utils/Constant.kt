@@ -1,7 +1,6 @@
 package com.example.simplemediaplayer.utils
 
-class Constants {
-    companion object{
-        const val BASE_URL = "https://mp3.zing.vn/xhr/"
-    }
+object Constants {
+    const val BASE_URL = "https://mp3.zing.vn/xhr/"
+    const val INTENT_FILTER_ACTION = "Tracks"
 }

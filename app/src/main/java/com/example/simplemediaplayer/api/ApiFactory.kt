@@ -11,12 +11,7 @@ import java.util.concurrent.TimeUnit
 
 object ApiFactory {
     val instance: ApiService = Retrofit.Builder().run {
-        val gson = GsonBuilder()
-            .enableComplexMapKeySerialization()
-            .setPrettyPrinting()
-            .create()
-
-        baseUrl(Constants.BASE_URL )
+        baseUrl(Constants.BASE_URL)
         addConverterFactory(GsonConverterFactory.create())
         client(createRequestInterceptorClient())
         build()
@@ -30,21 +25,12 @@ object ApiFactory {
             chain.proceed(request)
         }
 
-        return if (true) {
-            OkHttpClient.Builder()
-                .addInterceptor(interceptor)
-                .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BASIC))
-                .connectTimeout(1000.toLong(), TimeUnit.SECONDS)
-                .readTimeout(1000.toLong(), TimeUnit.SECONDS)
-                .writeTimeout(1000.toLong(), TimeUnit.SECONDS)
-                .build()
-        } else {
-            OkHttpClient.Builder()
-                .addInterceptor(interceptor)
-                .connectTimeout(1000.toLong(), TimeUnit.SECONDS)
-                .readTimeout(1000.toLong(), TimeUnit.SECONDS)
-                .writeTimeout(1000.toLong(), TimeUnit.SECONDS)
-                .build()
-        }
+        return OkHttpClient.Builder()
+            .addInterceptor(interceptor)
+            .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BASIC))
+            .connectTimeout(1000.toLong(), TimeUnit.SECONDS)
+            .readTimeout(1000.toLong(), TimeUnit.SECONDS)
+            .writeTimeout(1000.toLong(), TimeUnit.SECONDS)
+            .build()
     }
 }

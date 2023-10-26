@@ -1,14 +1,12 @@
 package com.example.simplemediaplayer.ui.activities
 
-import android.app.Notification
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.graphics.BitmapFactory
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.os.Bundle
@@ -18,9 +16,6 @@ import android.util.Log
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
-import androidx.core.content.getSystemService
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -30,8 +25,8 @@ import com.example.simplemediaplayer.databinding.ActivityMainBinding
 import com.example.simplemediaplayer.ext.formatDuration
 import com.example.simplemediaplayer.interfaces.Playable
 import com.example.simplemediaplayer.models.TrackData
-import com.example.simplemediaplayer.services.OnClearFromSessionService
 import com.example.simplemediaplayer.ui.dialogs.LoadingDialog
+import com.example.simplemediaplayer.utils.Constants
 import com.example.simplemediaplayer.utils.CreateNotification
 import com.example.simplemediaplayer.viewmodels.MainActivityViewModel
 
@@ -44,14 +39,11 @@ class MainActivity : AppCompatActivity(), Playable {
     private lateinit var runnable: Runnable
     private lateinit var loadingDialog: LoadingDialog
     private var currentTrack: TrackData? = null
-    private var pos : Int = -1
-    private var size: Int = -1
     var mediaPlayer: MediaPlayer = MediaPlayer()
-    lateinit var notificationManager: NotificationManager
+    private lateinit var notificationManager: NotificationManager
     private var broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(p0: Context?, p1: Intent?) {
-            var action: String = p1!!.extras!!.getString("actionName").toString()
-            when(action) {
+            when(p1!!.extras!!.getString("actionName").toString()) {
                 CreateNotification.ACTION_PREVIOUS -> {
                     onTrackPrevious()
                 }
@@ -81,13 +73,13 @@ class MainActivity : AppCompatActivity(), Playable {
         initBehaviour()
     }
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     private fun createChannel() {
         val channel = NotificationChannel(CreateNotification.CHANNEL_ID, "Music Player", NotificationManager.IMPORTANCE_LOW)
         notificationManager = getSystemService(NotificationManager::class.java)
         notificationManager.createNotificationChannel(channel)
-
-        registerReceiver(broadcastReceiver, IntentFilter("Tracks"))
-        startService(Intent(applicationContext, OnClearFromSessionService::class.java))
+        registerReceiver(broadcastReceiver, IntentFilter(Constants.INTENT_FILTER_ACTION))
+        CreateNotification.initMediaSession(applicationContext)
     }
 
     private fun initListSong() {
@@ -129,11 +121,9 @@ class MainActivity : AppCompatActivity(), Playable {
             }
         }
 
-        rvPlaylistAdapter.onItemClick = { data, p, s ->
+        rvPlaylistAdapter.onItemClick = { data ->
             currentTrack = data
-            pos = p
-            size = s
-            playSong(data, pos, size)
+            playSong(data)
         }
 
         binding.btnPrevious.setOnClickListener {
@@ -200,8 +190,8 @@ class MainActivity : AppCompatActivity(), Playable {
         handler.postDelayed(runnable, 1000)
     }
 
-    private fun playSong(data: TrackData, pos: Int, size: Int) {
-        CreateNotification.createNotification(this, data, R.drawable.ic_baseline_pause_circle_outline_24, position = pos, size)
+    private fun playSong(data: TrackData) {
+        CreateNotification.createNotification(this, data, R.drawable.ic_baseline_pause_circle_outline_24)
         if(data.id.isNotEmpty()) {
             if (mediaPlayer.isPlaying) {
                 clearMediaPlayer()
@@ -244,7 +234,7 @@ class MainActivity : AppCompatActivity(), Playable {
     override fun onStop() {
         super.onStop()
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-        val isScreenOn = pm.isScreenOn
+        val isScreenOn = pm.isInteractive
         if(!isScreenOn && mediaPlayer.isPlaying) {
             binding.btnPlayPause.performClick()
         }
@@ -264,13 +254,13 @@ class MainActivity : AppCompatActivity(), Playable {
     override fun onTrackPause() {
         mediaPlayer.pause()
         binding.btnPlayPause.setBackgroundResource(R.drawable.ic_baseline_play_circle_outline_24)
-        CreateNotification.createNotification(this, currentTrack!!, R.drawable.ic_baseline_play_circle_outline_24, position = pos, size)
+        CreateNotification.createNotification(this, currentTrack!!, R.drawable.ic_baseline_play_circle_outline_24)
     }
 
     override fun onTrackPlay() {
         mediaPlayer.start()
         binding.btnPlayPause.setBackgroundResource(R.drawable.ic_baseline_pause_circle_outline_24)
-        CreateNotification.createNotification(this, currentTrack!!, R.drawable.ic_baseline_pause_circle_outline_24, position = pos, size)
+        CreateNotification.createNotification(this, currentTrack!!, R.drawable.ic_baseline_pause_circle_outline_24)
     }
 
     override fun onTrackNext() {

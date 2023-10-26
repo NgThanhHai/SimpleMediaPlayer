@@ -13,12 +13,12 @@ import com.example.simplemediaplayer.databinding.LoadingDialogBinding
 
 class LoadingDialog: DialogFragment() {
 
-    lateinit var binding: LoadingDialogBinding
+    private lateinit var binding: LoadingDialogBinding
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = DataBindingUtil.inflate(LayoutInflater.from(requireContext()), R.layout.loading_dialog, null, false)
         return binding.root
     }
