@@ -20,17 +20,12 @@ import android.view.WindowManager
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.LinearSmoothScroller
-import androidx.recyclerview.widget.RecyclerView.SmoothScroller
 import com.example.simplemediaplayer.R
-import com.example.simplemediaplayer.adapters.PlayListRecyclerViewAdapter
 import com.example.simplemediaplayer.databinding.FragmentMainSessionBinding
 import com.example.simplemediaplayer.ext.formatDuration
 import com.example.simplemediaplayer.interfaces.Playable
 import com.example.simplemediaplayer.models.TrackData
 import com.example.simplemediaplayer.ui.activities.MainActivity
-import com.example.simplemediaplayer.ui.dialogs.LoadingDialog
 import com.example.simplemediaplayer.utils.Constants
 import com.example.simplemediaplayer.utils.CreateNotification
 import com.squareup.picasso.Picasso
@@ -39,11 +34,7 @@ import com.squareup.picasso.Picasso
 class MainSessionFragment : Fragment(), Playable {
 
     private lateinit var binding: FragmentMainSessionBinding
-    private var rvPlaylistAdapter = PlayListRecyclerViewAdapter()
-    private lateinit var rvLayoutManager: LinearLayoutManager
-    private var smoothScroller: SmoothScroller? = null
     private lateinit var runnable: Runnable
-    private lateinit var loadingDialog: LoadingDialog
     private var currentTrack: TrackData? = null
     var mediaPlayer: MediaPlayer = MediaPlayer()
     private lateinit var notificationManager: NotificationManager
@@ -73,7 +64,6 @@ class MainSessionFragment : Fragment(), Playable {
     }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentMainSessionBinding.inflate(layoutInflater, container, false)
-        loadingDialog = LoadingDialog()
         return binding.root
     }
 
@@ -82,8 +72,15 @@ class MainSessionFragment : Fragment(), Playable {
         configMediaPlayer()
         createChannel()
         initListSong()
-        initEvent()
         initBehaviour()
+        initEvent()
+    }
+
+    private fun initEvent() {
+        (requireActivity() as MainActivity).viewModel.getCurrentSelectedTracks().observe(viewLifecycleOwner) {
+            currentTrack = it
+            playSong(it)
+        }
     }
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
@@ -97,17 +94,6 @@ class MainSessionFragment : Fragment(), Playable {
 
     private fun initListSong() {
         binding.ivMainBackdrop.clipToOutline = true
-        binding.rvPlaylist.apply {
-            setItemViewCacheSize(200)
-            hasFixedSize()
-            rvLayoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
-            layoutManager = rvLayoutManager
-        }
-        smoothScroller = object : LinearSmoothScroller(context) {
-            override fun getVerticalSnapPreference(): Int {
-                return SNAP_TO_START
-            }
-        }
     }
 
     private fun initBehaviour() {
@@ -137,17 +123,6 @@ class MainSessionFragment : Fragment(), Playable {
             }
         }
 
-        rvPlaylistAdapter.onItemClick = { data ->
-            currentTrack = data
-            playSong(data)
-            if(rvPlaylistAdapter.nextTrackOnQueue > 0) {
-                smoothScroller?.let {
-                    it.targetPosition = rvPlaylistAdapter.nextTrackOnQueue
-                    rvLayoutManager.startSmoothScroll(it)
-                }
-            }
-        }
-
         binding.btnPrevious.setOnClickListener {
             onTrackPrevious()
         }
@@ -160,7 +135,7 @@ class MainSessionFragment : Fragment(), Playable {
 //        }
 
         binding.tvMore.setOnClickListener {
-            (requireActivity() as MainActivity).openFullPlaylistFragment()
+            (requireActivity() as MainActivity).animationOpenFullList()
         }
 
         initPendingSeekbarBehaviour()
@@ -178,31 +153,13 @@ class MainSessionFragment : Fragment(), Playable {
         }
     }
 
-    private fun initEvent() {
-        (requireActivity() as MainActivity).viewModel.getSongListSource().observe(viewLifecycleOwner) {
-            it?.let {
-                rvPlaylistAdapter.addAll(it)
-                binding.rvPlaylist.adapter = rvPlaylistAdapter
-            }
-        }
-
-        (requireActivity() as MainActivity).viewModel.loadingLiveData().observe(viewLifecycleOwner) {
-            if (it) {
-                loadingDialog.show(parentFragmentManager, "")
-            } else {
-                loadingDialog.dismiss()
-            }
-        }
-    }
-
-
     private fun initPendingSeekbarBehaviour() {
         val handler = Handler()
         runnable = Runnable {
             try {
                 binding.sbSongProgress.progress = mediaPlayer.currentPosition
                 if (binding.sbSongProgress.progress + 1 >= binding.sbSongProgress.max) {
-                    rvPlaylistAdapter.playNext()
+                    (requireActivity() as MainActivity).rvPlaylistAdapter.playNext()
                 }
             } catch (ex: Exception) {
                 Log.d("Exception in seekbar", ex.toString())
@@ -259,7 +216,7 @@ class MainSessionFragment : Fragment(), Playable {
     }
 
     override fun onTrackPrevious() {
-        rvPlaylistAdapter.playPrevious()
+        (requireActivity() as MainActivity).rvPlaylistAdapter.playPrevious()
     }
 
     override fun onTrackPause() {
@@ -279,7 +236,7 @@ class MainSessionFragment : Fragment(), Playable {
     }
 
     override fun onTrackNext() {
-        rvPlaylistAdapter.playNext()
+        (requireActivity() as MainActivity).rvPlaylistAdapter.playNext()
     }
 
     override fun onTrackShare() {

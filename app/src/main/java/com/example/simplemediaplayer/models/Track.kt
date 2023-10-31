@@ -36,11 +36,7 @@ data class TrackData (
     @SerializedName("ads") val ads : Boolean,
     @SerializedName("is_vip") val is_vip : Boolean,
     @SerializedName("ip") val ip : String,
-    var isSelected: Boolean = false
-
-
-)
-{
+    var isSelected: Boolean = false) {
     val displayDuration: String
         get() {
             fun formatDuration(seconds: Long): String = if (seconds < 60) {
@@ -54,19 +50,15 @@ data class TrackData (
 }
 
 data class TrackSource (
-
     @SerializedName("128") val _128 : String,
-    @SerializedName("320") val _320 : String
-)
+    @SerializedName("320") val _320 : String)
 
 data class TrackArtists (
-
     @SerializedName("name") val name : String,
     @SerializedName("link") val link : String
 )
 
 data class TrackArtist (
-
     @SerializedName("id") val id : String,
     @SerializedName("name") val name : String,
     @SerializedName("link") val link : String,
@@ -75,7 +67,6 @@ data class TrackArtist (
 )
 
 data class TrackAlbum (
-
     @SerializedName("id") val id : String,
     @SerializedName("link") val link : String,
     @SerializedName("title") val title : String,
