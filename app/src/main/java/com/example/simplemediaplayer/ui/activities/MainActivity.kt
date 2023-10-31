@@ -1,290 +1,58 @@
 package com.example.simplemediaplayer.ui.activities
 
-import android.annotation.SuppressLint
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.media.AudioAttributes
-import android.media.MediaPlayer
+import android.graphics.Color
 import android.os.Bundle
-import android.os.Handler
-import android.os.PowerManager
-import android.util.Log
-import android.widget.SeekBar
-import android.widget.Toast
+import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
-import androidx.databinding.DataBindingUtil
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.simplemediaplayer.R
-import com.example.simplemediaplayer.adapters.PlayListRecyclerViewAdapter
 import com.example.simplemediaplayer.databinding.ActivityMainBinding
-import com.example.simplemediaplayer.ext.formatDuration
-import com.example.simplemediaplayer.interfaces.Playable
-import com.example.simplemediaplayer.models.TrackData
-import com.example.simplemediaplayer.ui.dialogs.LoadingDialog
-import com.example.simplemediaplayer.utils.Constants
-import com.example.simplemediaplayer.utils.CreateNotification
+import com.example.simplemediaplayer.ui.fragments.FullPlaylistFragment
+import com.example.simplemediaplayer.ui.fragments.MainSessionFragment
 import com.example.simplemediaplayer.viewmodels.MainActivityViewModel
 
 
-class MainActivity : AppCompatActivity(), Playable {
+class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private lateinit var viewModel: MainActivityViewModel
-    private var rvPlaylistAdapter = PlayListRecyclerViewAdapter()
-    private lateinit var runnable: Runnable
-    private lateinit var loadingDialog: LoadingDialog
-    private var currentTrack: TrackData? = null
-    var mediaPlayer: MediaPlayer = MediaPlayer()
-    private lateinit var notificationManager: NotificationManager
-    private var broadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(p0: Context?, p1: Intent?) {
-            when(p1!!.extras!!.getString("actionName").toString()) {
-                CreateNotification.ACTION_PREVIOUS -> {
-                    onTrackPrevious()
-                }
-                CreateNotification.ACTION_NEXT -> {
-                    onTrackNext()
-                }
-                CreateNotification.ACTION_PLAY -> {
-                    if (mediaPlayer.isPlaying) {
-                        onTrackPause()
-                    } else {
-                        onTrackPlay()
-                    }
-                }
-            }
-        }
-    }
+    lateinit var viewModel: MainActivityViewModel
+    private val manager: FragmentManager = supportFragmentManager
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         viewModel = ViewModelProvider(this).get(MainActivityViewModel::class.java)
-        loadingDialog = LoadingDialog()
 
-        configMediaPlayer()
-        createChannel()
-        initListSong()
-        initEvent()
-        initBehaviour()
-    }
-
-    @SuppressLint("UnspecifiedRegisterReceiverFlag")
-    private fun createChannel() {
-        val channel = NotificationChannel(CreateNotification.CHANNEL_ID, "Music Player", NotificationManager.IMPORTANCE_LOW)
-        notificationManager = getSystemService(NotificationManager::class.java)
-        notificationManager.createNotificationChannel(channel)
-        registerReceiver(broadcastReceiver, IntentFilter(Constants.INTENT_FILTER_ACTION))
-        CreateNotification.initMediaSession(applicationContext)
-    }
-
-    private fun initListSong() {
-        binding.rvPlaylist.apply {
-            setItemViewCacheSize(200)
-            hasFixedSize()
-            layoutManager = LinearLayoutManager(
-                context,
-                LinearLayoutManager.VERTICAL,
-                false
-            )
+        val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+        windowInsetsController?.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        window.decorView.setOnApplyWindowInsetsListener { view, windowInsets ->
+            windowInsetsController?.hide(WindowInsetsCompat.Type.systemBars())
+            view.onApplyWindowInsets(windowInsets)
         }
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        openMainSessionFragment()
     }
 
-    private fun initBehaviour() {
-        binding.sbMusic.setOnSeekBarChangeListener(object :
-            SeekBar.OnSeekBarChangeListener {
-
-            var currentProgress = 0
-
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                currentProgress = progress
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                mediaPlayer.seekTo(currentProgress)
-            }
-
-        })
-
-        binding.btnPlayPause.setOnClickListener {
-            if (mediaPlayer.isPlaying) {
-                onTrackPause()
-            } else {
-                onTrackPlay()
-            }
-        }
-
-        rvPlaylistAdapter.onItemClick = { data ->
-            currentTrack = data
-            playSong(data)
-        }
-
-        binding.btnPrevious.setOnClickListener {
-            onTrackPrevious()
-        }
-        binding.btnNext.setOnClickListener {
-            onTrackNext()
-        }
-
-        binding.btnShare.setOnClickListener {
-            onTrackShare()
-        }
-
-        initPendingSeekbarBehaviour()
+    private fun openMainSessionFragment() {
+        val transaction: FragmentTransaction = manager.beginTransaction()
+        transaction.add(R.id.container, MainSessionFragment(), MAIN_SESSION_FRAGMENT_TAG)
+        transaction.commit()
     }
 
-
-    private fun configMediaPlayer() {
-        mediaPlayer.apply {
-            setAudioAttributes(
-                AudioAttributes
-                    .Builder()
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .build()
-            )
-            setVolume(20F, 20F)
-        }
+    fun openFullPlaylistFragment() {
+        val transaction: FragmentTransaction = manager.beginTransaction()
+        transaction.add(R.id.container, FullPlaylistFragment(), FULL_PLAYLIST_FRAGMENT_TAG)
+        transaction.addToBackStack(FULL_PLAYLIST_FRAGMENT_TAG)
+        transaction.commit()
     }
 
-    private fun initEvent() {
-        viewModel.getSongListSource().observe(this) {
-            it?.let {
-                rvPlaylistAdapter.addAll(it)
-                binding.rvPlaylist.adapter = rvPlaylistAdapter
-            }
-        }
-
-        viewModel.loadingLiveData().observe(this) {
-            if (it) {
-                loadingDialog.show(supportFragmentManager, "")
-            } else {
-                loadingDialog.dismiss()
-            }
-        }
+    companion object {
+        private const val MAIN_SESSION_FRAGMENT_TAG = "MAIN_SESSION_FRAGMENT_TAG"
+        private const val FULL_PLAYLIST_FRAGMENT_TAG = "FULL_PLAYLIST_FRAGMENT_TAG"
     }
-
-
-    private fun initPendingSeekbarBehaviour() {
-        val handler = Handler()
-        runnable = Runnable {
-            try {
-                binding.sbMusic.progress = mediaPlayer.currentPosition
-                if (binding.sbMusic.progress + 1 >= binding.sbMusic.max) {
-                    rvPlaylistAdapter.playNext()
-                }
-            } catch (ex: Exception) {
-                Log.d("Exception in seekbar", ex.toString())
-            }
-            binding.tvCurrentDuration.text =
-                formatDuration((binding.sbMusic.progress / 1000).toLong())
-            handler.postDelayed(runnable, 1000)
-
-        }
-        handler.postDelayed(runnable, 1000)
-    }
-
-    private fun playSong(data: TrackData) {
-        CreateNotification.createNotification(this, data, R.drawable.ic_baseline_pause_circle_outline_24)
-        if(data.id.isNotEmpty()) {
-            if (mediaPlayer.isPlaying) {
-                clearMediaPlayer()
-            }
-            try {
-                mediaPlayer = MediaPlayer()
-                mediaPlayer.apply {
-                    setDataSource(data.source._128)
-                    prepareAsync()
-                    setOnPreparedListener {
-                        start()
-                        binding.apply {
-                            btnPlayPause.setBackgroundResource(R.drawable.ic_baseline_pause_circle_outline_24)
-                            data.apply {
-                                tvSongTitle.text = name
-                                tvSingerName.text = artists_names
-                                tvMaxDuration.text = displayDuration
-                            }
-                            sbMusic.apply {
-                                progress = 0
-                                max = data.duration * 1000
-                            }
-                        }
-                    }
-                }
-            } catch (ex: Exception) {
-                Log.d("Exception: ", ex.toString())
-            }
-        }
-    }
-
-    private fun clearMediaPlayer() {
-        mediaPlayer.apply {
-            stop()
-            release()
-        }
-    }
-
-
-    override fun onStop() {
-        super.onStop()
-        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-        val isScreenOn = pm.isInteractive
-        if(!isScreenOn && mediaPlayer.isPlaying) {
-            binding.btnPlayPause.performClick()
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        clearMediaPlayer()
-        notificationManager.cancelAll()
-        unregisterReceiver(broadcastReceiver)
-    }
-
-    override fun onTrackPrevious() {
-        rvPlaylistAdapter.playPrevious()
-    }
-
-    override fun onTrackPause() {
-        mediaPlayer.pause()
-        binding.btnPlayPause.setBackgroundResource(R.drawable.ic_baseline_play_circle_outline_24)
-        CreateNotification.createNotification(this, currentTrack!!, R.drawable.ic_baseline_play_circle_outline_24)
-    }
-
-    override fun onTrackPlay() {
-        mediaPlayer.start()
-        binding.btnPlayPause.setBackgroundResource(R.drawable.ic_baseline_pause_circle_outline_24)
-        CreateNotification.createNotification(this, currentTrack!!, R.drawable.ic_baseline_pause_circle_outline_24)
-    }
-
-    override fun onTrackNext() {
-        rvPlaylistAdapter.playNext()
-    }
-
-    override fun onTrackShare() {
-        if (currentTrack?.link?.isNotEmpty() == true) {
-            val sendIntent = Intent()
-            sendIntent.action = Intent.ACTION_SEND
-            sendIntent.putExtra(
-                Intent.EXTRA_TEXT,
-                "https://zingmp3.vn" + currentTrack?.link.toString()
-            )
-            sendIntent.type = "text/plain"
-            sendIntent.setPackage("com.facebook.orca")
-            try {
-                startActivity(sendIntent)
-            } catch (ex: java.lang.Exception) {
-                ex.printStackTrace()
-            }
-        } else {
-            Toast.makeText(this, "Select a song first", Toast.LENGTH_SHORT).show()
-        }
-    }
-
 }

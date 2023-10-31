@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
 import com.example.simplemediaplayer.R
 import com.example.simplemediaplayer.databinding.LoadingDialogBinding
@@ -14,12 +13,8 @@ import com.example.simplemediaplayer.databinding.LoadingDialogBinding
 class LoadingDialog: DialogFragment() {
 
     private lateinit var binding: LoadingDialogBinding
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = DataBindingUtil.inflate(LayoutInflater.from(requireContext()), R.layout.loading_dialog, null, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        binding = LoadingDialogBinding.inflate(inflater, container, false)
         return binding.root
     }
 

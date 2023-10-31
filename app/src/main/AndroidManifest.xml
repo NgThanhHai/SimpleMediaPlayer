@@ -22,7 +22,6 @@
         </activity>
         <receiver android:name=".services.NotificationActionService"
             android:exported="true"/>
-        <service android:name=".services.OnClearFromSessionService"/>
     </application>
 
 </manifest>

@@ -1,11 +1,8 @@
 package com.example.simplemediaplayer.adapters
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.example.simplemediaplayer.R
 import com.example.simplemediaplayer.databinding.LayoutListCellBinding
 import com.example.simplemediaplayer.models.TrackData
 import com.squareup.picasso.Picasso
@@ -14,6 +11,7 @@ class PlayListRecyclerViewAdapter(var playlist: MutableList<TrackData> = mutable
 
     var onItemClick: ((TrackData) -> Unit)? = null
     var chosenTrack = -1
+    var nextTrackOnQueue = 0
 
     fun addAll(lst: List<TrackData>){
         playlist.clear()
@@ -24,24 +22,14 @@ class PlayListRecyclerViewAdapter(var playlist: MutableList<TrackData> = mutable
     inner class ViewHolder(private var binding: LayoutListCellBinding): RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: TrackData) {
-            binding.track = item
-            Picasso.get()
-                .load(item.thumbnail)
-                .fit()
-                .centerCrop()
-                .into(binding.ivMiniSongPoster)
-            if(item.isSelected) {
-                binding.itemContainer.setBackgroundResource(R.drawable.list_song_item_background_off)
-            }else {
-                binding.itemContainer.setBackgroundResource(R.drawable.list_song_item_background_on)
-            }
+            binding.tvSongNamePL.text = item.title
+            binding.tvArtistNamePL.text = item.artist.name
+            binding.tvDuration.text = item.displayDuration
+            binding.ivMiniSongPoster.clipToOutline = true
+            Picasso.get().load(item.thumbnail).fit().into(binding.ivMiniSongPoster)
             binding.root.setOnClickListener {
-
-                unselectedAll()
-                notifyItemChanged(chosenTrack)
                 chosenTrack = adapterPosition
-                playlist[chosenTrack].isSelected = true
-                notifyItemChanged(chosenTrack)
+                nextTrackOnQueue = truncate(chosenTrack + 1)
                 onItemClick?.invoke(playlist[chosenTrack])
             }
         }
@@ -49,20 +37,14 @@ class PlayListRecyclerViewAdapter(var playlist: MutableList<TrackData> = mutable
     }
 
     fun playNext() {
-        unselectedAll()
-        notifyItemChanged(chosenTrack)
         chosenTrack = truncate(chosenTrack + 1)
-        playlist[chosenTrack].isSelected = true
-        notifyItemChanged(chosenTrack)
+        nextTrackOnQueue = truncate(chosenTrack + 1)
         onItemClick?.invoke(playlist[chosenTrack])
     }
 
     fun playPrevious() {
-        unselectedAll()
-        notifyItemChanged(chosenTrack)
-        chosenTrack = truncate(chosenTrack -1)
-        playlist[chosenTrack].isSelected = true
-        notifyItemChanged(chosenTrack)
+        chosenTrack = truncate(chosenTrack - 1)
+        nextTrackOnQueue = truncate(chosenTrack - 1)
         onItemClick?.invoke(playlist[chosenTrack])
     }
 
@@ -81,7 +63,7 @@ class PlayListRecyclerViewAdapter(var playlist: MutableList<TrackData> = mutable
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val layoutListCellBinding: LayoutListCellBinding = DataBindingUtil.inflate(LayoutInflater.from(parent.context), R.layout.layout_list_cell, parent, false)
+        val layoutListCellBinding: LayoutListCellBinding = LayoutListCellBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(layoutListCellBinding)
     }
 
